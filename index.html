@@ -3646,7 +3646,64 @@
 <!-- End MaxConv Tracking Script Base Code-->
 <script>
 maxconv(function () {
-    maxconv("generateLinks");
+    var clickHost = "xuhyyi.mcgo2.com/click";
+    var links = document.querySelectorAll('a[href*="' + clickHost + '"]');
+
+    links.forEach(function (link) {
+        try {
+            var url = new URL(link.href, window.location.href);
+            var mcAttr = url.searchParams.get("mc_attr");
+            var mcTid = url.searchParams.get("mc_tid");
+            url.search = "";
+            if (mcAttr) {
+                url.searchParams.set("mc_attr", mcAttr);
+            }
+            if (mcTid) {
+                url.searchParams.set("mc_tid", mcTid);
+            }
+            link.href = url.toString();
+        } catch (e) {}
+    });
+
+    links.forEach(function (link) {
+        if (link.href.indexOf(clickHost) === -1) {
+            return;
+        }
+
+        var href = link.getAttribute("href") || link.href;
+        var offerNum = null;
+        var match = /\/click\/(\d+)(?:\?|$|\/)/.exec(href);
+        if (match) {
+            offerNum = parseInt(match[1], 10);
+        }
+
+        var offerUrl = maxconv("getOfferLink", offerNum);
+        if (!offerUrl) {
+            return;
+        }
+
+        try {
+            var clickUrl = new URL(link.href, window.location.href);
+            var target = new URL(offerUrl);
+            clickUrl.searchParams.forEach(function (value, key) {
+                if (key !== "mc_attr" && key !== "mc_tid" && !target.searchParams.has(key)) {
+                    target.searchParams.set(key, value);
+                }
+            });
+            offerUrl = target.toString();
+        } catch (e) {}
+
+        link.href = offerUrl;
+
+        link.addEventListener("click", function () {
+            maxconv("logClick", offerNum);
+        });
+        link.addEventListener("auxclick", function (e) {
+            if (e.button === 1) {
+                maxconv("logClick", offerNum);
+            }
+        });
+    });
 });
 </script>
 
